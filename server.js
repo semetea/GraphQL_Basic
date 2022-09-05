@@ -4,10 +4,12 @@ let tweets = [
   {
     id: "1",
     text: "first one!",
+    userId: "2",
   },
   {
     id: "2",
     text: "second one!",
+    userId: "1",
   },
 ];
 
@@ -38,7 +40,7 @@ const typeDefs = gql`
   type Tweet {
     id: ID!
     text: String!
-    author: User
+    author: User!
   }
 
   type Query {
@@ -47,7 +49,7 @@ const typeDefs = gql`
     """
     allUsers: [User!]!
     allTweets: [Tweet!]!
-    tweet(id: ID!): Tweet
+    tweet(id: ID!): Tweet!
   }
 
   type Mutation {
@@ -73,9 +75,12 @@ const resolvers = {
   Mutation: {
     postTweet(_, { text, userId }) {
       // 첫번째는 root, 두번째는 args
+      const userFind = users.find((user) => user.id === userId);
+      if (!userFind) throw new error("userId is not found");
       const newTweet = {
         id: tweets.length + 1,
         text,
+        userId,
       };
       tweets.push(newTweet);
       return newTweet;
@@ -91,6 +96,11 @@ const resolvers = {
   User: {
     fullName({ firstName, lastName }) {
       return `${firstName} ${lastName}`;
+    },
+  },
+  Tweet: {
+    author({ userId }) {
+      return users.find((user) => user.id === userId);
     },
   },
 };
